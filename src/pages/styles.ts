@@ -7,6 +7,10 @@ import {
 } from "@mui/material";
 
 export const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  width: 20,
+  maxWidth: 20,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.secondary.dark,
     color: theme.palette.common.white,

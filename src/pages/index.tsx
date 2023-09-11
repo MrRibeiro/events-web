@@ -130,10 +130,10 @@ export default function Home({ events }: HomeProps) {
                 </StyledTableCell>
                 <StyledTableCell align="right">{row.initHour}</StyledTableCell>
                 <StyledTableCell align="right">{row.endHour}</StyledTableCell>
-                <StyledTableCell align="right">
+                <StyledTableCell>
                   <Button
                     variant="contained"
-                    sx={{ marginRight: "20px" }}
+                    sx={{ marginRight: "8px" }}
                     color="secondary"
                     href={`/events/${row.id}`}
                   >
