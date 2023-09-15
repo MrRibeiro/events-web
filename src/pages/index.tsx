@@ -21,6 +21,7 @@ import {
 import { format } from "date-fns";
 import { GetStaticProps } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { StyledTableCell, StyledTableRow } from "./styles";
 
@@ -34,6 +35,7 @@ const DISCOVERY_DOC = [
 const SCOPES = "https://www.googleapis.com/auth/calendar";
 
 export default function Home({ events }: HomeProps) {
+  const router = useRouter();
   const [eventsData, setEventsData] = useState<Events[]>([]);
   const [openConfirmDelete, setOpenConfirmDelete] = useState<boolean>(false);
   const [openConfirmMarkEvent, setOpenConfirmMarkEvent] =
@@ -59,6 +61,10 @@ export default function Home({ events }: HomeProps) {
     newDate.setMinutes(Number(myHour[1]));
 
     return newDate;
+  };
+
+  const handleEdit = (id: number) => {
+    router.push(`/events/${id}`);
   };
 
   const handleConfirmMarkEvent = async () => {
@@ -202,7 +208,7 @@ export default function Home({ events }: HomeProps) {
                 <StyledTableCell align="right">{row.endHour}</StyledTableCell>
                 <StyledTableCell align="right">
                   <MenuItems>
-                    <MenuItem href={`/events/${row.id}`}>
+                    <MenuItem onClick={() => handleEdit(row.id!)}>
                       <Edit />
                       Editar
                     </MenuItem>
