@@ -1,5 +1,6 @@
 import ContentPage from "@/components/ContentPage";
 import DialogStyled from "@/components/Dialog";
+import MenuItems from "@/components/MenuItems";
 import { deleteEvent, fetchEventsData } from "@/services/events";
 import { Events } from "@/types/events";
 import { Delete, Edit, Event } from "@mui/icons-material";
@@ -9,6 +10,7 @@ import {
   Backdrop,
   Button,
   CircularProgress,
+  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -56,12 +58,11 @@ export default function Home({ events }: HomeProps) {
     newDate.setHours(Number(myHour[0]));
     newDate.setMinutes(Number(myHour[1]));
 
-    console.log(newDate.getTimezoneOffset());
-
     return newDate;
   };
 
   const handleConfirmMarkEvent = async () => {
+    setSuccess("");
     const gapi = await import("gapi-script").then((pack) => pack.gapi);
 
     gapi.load("client:auth2", () => {
@@ -98,7 +99,7 @@ export default function Home({ events }: HomeProps) {
           });
 
           request.execute(() => {
-            console.log(event);
+            setSuccess(`Evento ${rowEvent.name} marcado na agenda`);
             setOpenConfirmMarkEvent(false);
           });
         });
@@ -182,7 +183,7 @@ export default function Home({ events }: HomeProps) {
               <StyledTableCell align="right">Data</StyledTableCell>
               <StyledTableCell align="right">Inicio</StyledTableCell>
               <StyledTableCell align="right">Fim</StyledTableCell>
-              <StyledTableCell align="right">Ações</StyledTableCell>
+              <StyledTableCell align="right"></StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -199,29 +200,19 @@ export default function Home({ events }: HomeProps) {
                 </StyledTableCell>
                 <StyledTableCell align="right">{row.initHour}</StyledTableCell>
                 <StyledTableCell align="right">{row.endHour}</StyledTableCell>
-                <StyledTableCell>
-                  <Button
-                    variant="contained"
-                    sx={{ marginRight: "8px" }}
-                    color="secondary"
-                    href={`/events/${row.id}`}
-                  >
-                    <Edit />
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleClickOpenDelete(row)}
-                  >
-                    <Delete />
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleClickOpenMark(row)}
-                  >
-                    <Event />
-                  </Button>
+                <StyledTableCell align="right">
+                  <MenuItems>
+                    <MenuItem href={`/events/${row.id}`}>
+                      <Edit />
+                      Editar
+                    </MenuItem>
+                    <MenuItem onClick={() => handleClickOpenDelete(row)}>
+                      <Delete /> Deletar
+                    </MenuItem>
+                    <MenuItem onClick={() => handleClickOpenMark(row)}>
+                      <Event /> Marcar Evento
+                    </MenuItem>
+                  </MenuItems>
                 </StyledTableCell>
               </StyledTableRow>
             ))}
