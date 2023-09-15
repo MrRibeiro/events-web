@@ -1,4 +1,4 @@
-import { Events } from "@/types";
+import { Events } from "@/types/events";
 import { axiosInstance } from "./api";
 
 export const fetchEventsData = async () => {

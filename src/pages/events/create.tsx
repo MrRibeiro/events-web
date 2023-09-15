@@ -1,6 +1,6 @@
 import ContentPage from "@/components/ContentPage";
 import { newEvent } from "@/services/events";
-import { Events } from "@/types";
+import { Events } from "@/types/events";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Alert,

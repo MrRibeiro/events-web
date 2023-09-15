@@ -1,18 +1,14 @@
 import ContentPage from "@/components/ContentPage";
+import DialogStyled from "@/components/Dialog";
 import { deleteEvent, fetchEventsData } from "@/services/events";
-import { Events } from "@/types";
-import { Delete, Edit } from "@mui/icons-material";
+import { Events } from "@/types/events";
+import { Delete, Edit, Event } from "@mui/icons-material";
 import {
   Alert,
   AlertTitle,
   Backdrop,
   Button,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Paper,
   Table,
   TableBody,
@@ -24,15 +20,22 @@ import { format } from "date-fns";
 import { GetStaticProps } from "next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CancelButton, StyledTableCell, StyledTableRow } from "./styles";
+import { StyledTableCell, StyledTableRow } from "./styles";
 
 interface HomeProps {
   events: Events[];
 }
 
+const DISCOVERY_DOC = [
+  "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+];
+const SCOPES = "https://www.googleapis.com/auth/calendar";
+
 export default function Home({ events }: HomeProps) {
   const [eventsData, setEventsData] = useState<Events[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
+  const [openConfirmDelete, setOpenConfirmDelete] = useState<boolean>(false);
+  const [openConfirmMarkEvent, setOpenConfirmMarkEvent] =
+    useState<boolean>(false);
   const [rowEvent, setRowEvent] = useState<Events>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>("");
@@ -46,14 +49,81 @@ export default function Home({ events }: HomeProps) {
 
   if (eventsData.length === 0) return null;
 
-  const handleClickOpen = (row: Events) => {
-    setRowEvent(row);
-    setOpen(true);
+  const formatDateTime = (date: Date, hour: string) => {
+    const newDate = new Date(date);
+    const myHour = hour.split(":");
+
+    newDate.setHours(Number(myHour[0]));
+    newDate.setMinutes(Number(myHour[1]));
+
+    console.log(newDate.getTimezoneOffset());
+
+    return newDate;
   };
 
-  const handleClose = () => {
+  const handleConfirmMarkEvent = async () => {
+    const gapi = await import("gapi-script").then((pack) => pack.gapi);
+
+    gapi.load("client:auth2", () => {
+      gapi.client.init({
+        apiKey: "AIzaSyDd9f8RbyAnptLFMPKyZFe6Jh2JJldEHlg",
+        clientId:
+          "106122336812-rg4o8r60nu72dpvgj22leahl8l8fp8hu.apps.googleusercontent.com",
+        discoveryDocs: DISCOVERY_DOC,
+        scope: SCOPES,
+      });
+
+      gapi.client.load("calendar", "v3", () => console.log("loaded!"));
+
+      gapi.auth2
+        .getAuthInstance()
+        .signIn()
+        .then(() => {
+          var event = {
+            summary: rowEvent.name,
+            description: rowEvent.description,
+            start: {
+              dateTime: formatDateTime(rowEvent.date!, rowEvent.initHour!),
+              timeZone: "America/Fortaleza",
+            },
+            end: {
+              dateTime: formatDateTime(rowEvent.date!, rowEvent.endHour!),
+              timeZone: "America/Fortaleza",
+            },
+            recurrence: ["RRULE:FREQ=DAILY;COUNT=2"],
+          };
+
+          let request = gapi.client.calendar.events.insert({
+            calendarId: "primary",
+            resource: event,
+          });
+
+          request.execute(() => {
+            console.log(event);
+            setOpenConfirmMarkEvent(false);
+          });
+        });
+    });
+  };
+
+  const handleClickOpenDelete = (row: Events) => {
+    setRowEvent(row);
+    setOpenConfirmDelete(true);
+  };
+
+  const handleClickOpenMark = (row: Events) => {
+    setRowEvent(row);
+    setOpenConfirmMarkEvent(true);
+  };
+
+  const handleCloseDelete = () => {
     setRowEvent({});
-    setOpen(false);
+    setOpenConfirmDelete(false);
+  };
+
+  const handleCloseMark = () => {
+    setRowEvent({});
+    setOpenConfirmMarkEvent(false);
   };
 
   const handleSyncEvents = async () => {
@@ -61,11 +131,11 @@ export default function Home({ events }: HomeProps) {
     setEventsData(eventsData);
   };
 
-  const handleConfirmDelete = (id: number) => {
+  const handleConfirmDelete = () => {
     setIsLoading(true);
     setSuccess("");
     setError("");
-    deleteEvent(id)
+    deleteEvent(rowEvent.id!)
       .then((response) => {
         handleSyncEvents();
         setSuccess(response.message);
@@ -74,7 +144,7 @@ export default function Home({ events }: HomeProps) {
         setError(err.message);
       })
       .finally(() => {
-        setOpen(false);
+        setOpenConfirmDelete(false);
         setIsLoading(false);
       });
   };
@@ -142,9 +212,16 @@ export default function Home({ events }: HomeProps) {
                   <Button
                     variant="contained"
                     color="error"
-                    onClick={() => handleClickOpen(row)}
+                    onClick={() => handleClickOpenDelete(row)}
                   >
                     <Delete />
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleClickOpenMark(row)}
+                  >
+                    <Event />
                   </Button>
                 </StyledTableCell>
               </StyledTableRow>
@@ -153,30 +230,23 @@ export default function Home({ events }: HomeProps) {
         </Table>
       </TableContainer>
 
-      <Dialog
-        open={open}
-        keepMounted
-        onClose={handleClose}
-        fullWidth
-        aria-describedby="alert-dialog-confirmation"
-      >
-        <DialogTitle>{`Deletar ${rowEvent.name}`}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-confirmation">
-            {`Deseja realmente deletar ${rowEvent.name}`}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <CancelButton onClick={handleClose}>Cancelar</CancelButton>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => handleConfirmDelete(rowEvent.id!)}
-          >
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DialogStyled
+        key={"delete"}
+        title={`Deletar ${rowEvent.name}`}
+        contentText={`Deseja realmente deletar ${rowEvent.name}`}
+        open={openConfirmDelete}
+        handleClose={handleCloseDelete}
+        handleConfirm={handleConfirmDelete}
+      />
+
+      <DialogStyled
+        key={"mark"}
+        title={`Marcar evento ${rowEvent.name} na agenda!`}
+        contentText={`Deseja marcar o evento ${rowEvent.name} na sua agenda do google ?`}
+        open={openConfirmMarkEvent}
+        handleClose={handleCloseMark}
+        handleConfirm={handleConfirmMarkEvent}
+      />
 
       <div>
         <Backdrop

@@ -1,10 +1,4 @@
-import {
-  Button,
-  TableCell,
-  TableRow,
-  styled,
-  tableCellClasses,
-} from "@mui/material";
+import { TableCell, TableRow, styled, tableCellClasses } from "@mui/material";
 
 export const StyledTableCell = styled(TableCell)(({ theme }) => ({
   width: 20,
@@ -27,8 +21,4 @@ export const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:last-child td, &:last-child th": {
     border: 0,
   },
-}));
-
-export const CancelButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.common.black,
 }));
