@@ -66,9 +66,8 @@ export default function Home({ events }: HomeProps) {
 
     gapi.load("client:auth2", () => {
       gapi.client.init({
-        apiKey: "AIzaSyDd9f8RbyAnptLFMPKyZFe6Jh2JJldEHlg",
-        clientId:
-          "106122336812-rg4o8r60nu72dpvgj22leahl8l8fp8hu.apps.googleusercontent.com",
+        apiKey: String(process.env.NEXT_PUBLIC_API_KEY),
+        clientId: String(process.env.NEXT_PUBLIC_CLIENT_ID),
         discoveryDocs: DISCOVERY_DOC,
         scope: SCOPES,
       });
