@@ -85,7 +85,7 @@ export default function Create() {
       <form onSubmit={handleSubmit(onSubmit)}>
         {error && (
           <Alert severity="error">
-            <AlertTitle>Ocorreu um erro</AlertTitle>
+            <AlertTitle>Ocorreu um erro </AlertTitle>
             <strong>{error}</strong>
           </Alert>
         )}
